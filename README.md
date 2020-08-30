@@ -12,7 +12,7 @@ Please cite the paper if you use any of this.
   
 The data has been uploaded to Mandeley:
 
-<link>
+DOI: 10.17632/6s959w2zyr.1
 
 # Contact
 Jose Fernandez Navarro <jc.fernandez.navarro@gmail.com>
