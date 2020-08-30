@@ -1,0 +1,94 @@
+PATH = "~/Google Drive/ALZHEIMER_USA(Will)"
+#PATH = "G:/My Drive/ALZHEIMER_USA(Will)"
+
+# Load in-house functions
+source(paste0(PATH,"/Scripts/libraries.R"))
+
+# Set the path to Hippocampus
+setwd(paste0(PATH,"/Hippocampus/COMBINED_DE_ANALYSIS"))
+
+# Dentate gyrus
+dg_ad_vs_wt = parse_dea_results("results_DG/dea_results_DG_AD_vs_WT.tsv")
+dg_adpolb_vs_wt = parse_dea_results("results_DG/dea_results_DG_ADPolB_vs_WT.tsv")
+dg_polb_vs_wt = parse_dea_results("results_DG/dea_results_DG_PolB_vs_WT.tsv")
+
+# CA1
+ca1_ad_vs_wt = parse_dea_results("results_CA1/dea_results_CA1_AD_vs_WT.tsv")
+ca1_adpolb_vs_wt = parse_dea_results("results_CA1/dea_results_CA1_ADPolB_vs_WT.tsv")
+ca1_polb_vs_wt = parse_dea_results("results_CA1/dea_results_CA1_PolB_vs_WT.tsv")
+
+# CA2-3
+ca23_ad_vs_wt = parse_dea_results("results_CA23/dea_results_CA2-3_AD_vs_WT.tsv")
+ca23_adpolb_vs_wt = parse_dea_results("results_CA23/dea_results_CA2-3_ADPolB_vs_WT.tsv")
+ca23_polb_vs_wt = parse_dea_results("results_CA23/dea_results_CA2-3_PolB_vs_WT.tsv")
+
+# Set the path to MOB
+setwd(paste0(PATH,"/MOB/COMBINED_DE_ANALYSIS"))
+
+# EPL
+epl_ad_vs_wt = parse_dea_results("results_EPL/dea_results_AD_vs_WT.tsv")
+epl_adpolb_vs_wt = parse_dea_results("results_EPL/dea_results_ADPolB_vs_WT.tsv")
+epl_polb_vs_wt = parse_dea_results("results_EPL/dea_results_PolB_vs_WT.tsv")
+
+# GCL 
+gcl_ad_vs_wt = parse_dea_results("results_GCL/dea_results_AD_vs_WT.tsv")
+gcl_adpolb_vs_wt = parse_dea_results("results_GCL/dea_results_ADPolB_vs_WT.tsv")
+gcl_polb_vs_wt = parse_dea_results("results_GCL/dea_results_PolB_vs_WT.tsv")
+
+# MCL
+mcl_ad_vs_wt = parse_dea_results("results_MCL/dea_results_AD_vs_WT.tsv")
+mcl_adpolb_vs_wt = parse_dea_results("results_MCL/dea_results_ADPolB_vs_WT.tsv")
+mcl_polb_vs_wt = parse_dea_results("results_MCL/dea_results_PolB_vs_WT.tsv")
+
+# GL
+gl_ad_vs_wt = parse_dea_results("results_GL/dea_results_AD_vs_WT.tsv")
+gl_adpolb_vs_wt = parse_dea_results("results_GL/dea_results_ADPolB_vs_WT.tsv")
+gl_polb_vs_wt = parse_dea_results("results_GL/dea_results_PolB_vs_WT.tsv")
+
+
+##############################
+## Combine MOB + Hippo heatmap
+#############################
+
+# Set the path to the root
+setwd(PATH)
+
+genes_hippo = unique(c(rownames(dg_ad_vs_wt), rownames(dg_adpolb_vs_wt), rownames(dg_polb_vs_wt),
+                       rownames(ca1_ad_vs_wt), rownames(ca1_adpolb_vs_wt), rownames(ca1_polb_vs_wt),
+                       rownames(ca23_ad_vs_wt), rownames(ca23_adpolb_vs_wt), rownames(ca23_polb_vs_wt)))
+                 
+genes_mob = unique(c(rownames(epl_ad_vs_wt), rownames(epl_adpolb_vs_wt), rownames(epl_polb_vs_wt),
+                     rownames(gcl_ad_vs_wt), rownames(gcl_adpolb_vs_wt), rownames(gcl_polb_vs_wt),
+                     rownames(mcl_ad_vs_wt), rownames(mcl_adpolb_vs_wt), rownames(mcl_polb_vs_wt),
+                     rownames(gl_ad_vs_wt), rownames(gl_adpolb_vs_wt), rownames(gl_polb_vs_wt)))
+
+intersect_genes = intersect(genes_mob, genes_hippo)
+write.table(intersect(genes_mob, genes_hippo), 
+            "intersect_genes.txt", sep="\t", col.names=F, row.names=F, quote=F)
+
+# Create a FC heatmap
+heatmap_genes_hippo_MOB(intersect_genes,  
+                        dg_ad_vs_wt, dg_adpolb_vs_wt, dg_polb_vs_wt,
+                        ca1_ad_vs_wt, ca1_adpolb_vs_wt, ca1_polb_vs_wt,
+                        ca23_ad_vs_wt, ca23_adpolb_vs_wt, ca23_polb_vs_wt,
+                        epl_ad_vs_wt, epl_adpolb_vs_wt, epl_polb_vs_wt,
+                        gcl_ad_vs_wt, gcl_adpolb_vs_wt, gcl_polb_vs_wt,
+                        mcl_ad_vs_wt, mcl_adpolb_vs_wt, mcl_polb_vs_wt,
+                        gl_ad_vs_wt, gl_adpolb_vs_wt, gl_polb_vs_wt,
+                        "heatmap_fold_change_candidate_genes_hippo_mob", 
+                        fontsize=3, width=10, height=10)
+                        
+# (venn of MOB and hippo)
+venn.diagram(x=list(genes_hippo,
+                    genes_mob),
+            filename="MOB_HIPPO_venn.png", main="OFB & Hippocampus DE GENES", 
+            fill=c("blue", "red"), 	scaled = TRUE, ext.text = TRUE, ext.line.lwd = 1,
+            cex = 2.0, cat.cex = 2.0, rotation.degree = 0, cat.pos = 0, main.cex=2,
+            alpha=c(0.5, 0.5), cat.fontface=10, height=3000, width=3000,
+            category.names=c("Hippocampus", "OFB"), imagetype="png")
+            
+# Pathways
+doEnrichR(intersect_genes, "Intersect_genes", min_fdr=1.0, min_pval=0.05, min_genes=3)
+go_biological = read.delim("Intersect_genes_GO_biological_.tsv", sep="\t", header=T)
+heatmap_pathways(go_biological, "go_biological_heatmap_top25", max=25)
+barplot_pathways(go_biological, "go_biological_barplot_top25", max=25)

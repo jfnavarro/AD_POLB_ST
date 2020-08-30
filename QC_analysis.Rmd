@@ -1,0 +1,149 @@
+suppressMessages(library(scater))
+suppressMessages(library(scran))
+suppressMessages(library(plyr))
+suppressMessages(library(dplyr))
+suppressMessages(library(ggplot2))
+
+qc_analysis <- function(sce, slice_meta, name, log_total_pca=TRUE) {
+  
+  pdf(name)
+  
+  colData(sce) = cbind(colData(sce), perCellQCMetrics(sce))
+  rowData(sce) = cbind(rowData(sce), perFeatureQCMetrics(sce))
+    
+  # Plot highest expressed genes.
+  print(plotHighestExprs(sce, colour_cells_by="genotype"))
+  
+  # Plot frequency of expression (number of spots with detection) vs mean normalised expression.
+  print(plotRowData(sce, y="detected", x="mean") + scale_y_log10())
+  
+  # Plot log10 total count vs number of spots.
+  print(plotColData(sce, x="detected", y="total") + scale_y_log10())
+  
+  # Plot the percentage of expression accounted for by feature controls against total_features_by_X.
+  print(plotColData(sce, x="total", y="percent_top_500", colour_by="cluster"))
+  print(plotColData(sce, x="total", y="percent_top_500", colour_by="animal"))
+  print(plotColData(sce, x="total", y="percent_top_500", colour_by="genotype"))
+  print(plotColData(sce, x="total", y="percent_top_500", colour_by="chip"))
+  
+  # PCA - with different coloring
+  sce = runPCA(sce)
+  print(plotPCA(sce, ncomponents=2, colour_by="animal") + geom_point(aes_string(fill="colour_by"), 
+                                                                     size=2, shape=21, colour="gray70", alpha=0.25))
+  print(plotPCA(sce, ncomponents=2, colour_by="cluster"))
+  print(plotPCA(sce, ncomponents=2, colour_by="genotype"))
+  print(plotPCA(sce, ncomponents=2, colour_by="chip"))
+  print(plotPCA(sce, ncomponents=2, colour_by="detected"))
+  print(plotPCA(sce, ncomponents=2, colour_by="total"))
+  
+  # UMAP - with different coloring
+  sce = runUMAP(sce)
+  print(plotUMAP(sce, ncomponents=2, colour_by="animal") + geom_point(aes_string(fill="colour_by"), 
+                                                                     size=2, shape=21, colour="gray70", alpha=0.25))
+  print(plotUMAP(sce, ncomponents=2, colour_by="cluster"))
+  print(plotUMAP(sce, ncomponents=2, colour_by="genotype"))
+  print(plotUMAP(sce, ncomponents=2, colour_by="chip"))
+  print(plotUMAP(sce, ncomponents=2, colour_by="detected"))
+  print(plotUMAP(sce, ncomponents=2, colour_by="total"))
+  
+  # Shows how much of the data variation is explained by a single variable.
+  print(plotExplanatoryPCs(sce, variables=c("detected", "total", "animal", "cluster", "genotype", "chip")))
+  print(plotExplanatoryPCs(sce, variable="detected"))
+  print(plotExplanatoryPCs(sce, variable="total"))
+  print(plotExplanatoryPCs(sce, variable="animal"))
+  print(plotExplanatoryPCs(sce, variable="cluster"))
+  print(plotExplanatoryPCs(sce, variable="genotype"))
+  print(plotExplanatoryPCs(sce, variable="chip"))
+  
+  # PCA total counts 
+  counts = counts(sce)
+  indexes = 1:length(rownames(slice_meta))
+  sum_counts = matrix(nrow=length(rownames(slice_meta)), 
+                      ncol=length(rownames(counts)))
+  rownames(sum_counts) = rownames(slice_meta)
+  colnames(sum_counts) = rownames(counts)
+  for (slice in indexes) {
+    sum_counts[slice,] = rowSums(counts[,grepl(slice, colnames(counts))])
+  }
+  sce_total = SingleCellExperiment(assays=list(counts=t(sum_counts)),
+                                   colData=slice_meta[,c("animal", "genotype", "chip")])
+  if (log_total_pca) {
+    logcounts(sce_total) = log2(counts(sce_total) + 1)
+  } else {
+    logcounts(sce_total) = counts(sce_total)
+  }
+  
+  colData(sce_total) = cbind(colData(sce_total), perCellQCMetrics(sce_total))
+  rowData(sce_total) = cbind(rowData(sce_total), perFeatureQCMetrics(sce_total))
+  sce_total = runPCA(sce_total)
+  sce_total = runUMAP(sce_total)
+  
+  print(plotPCA(sce_total, colour_by="animal"))
+  print(plotPCA(sce_total, colour_by="genotype"))
+  print(plotPCA(sce_total, colour_by="chip"))
+  print(plotPCA(sce_total, colour_by="detected"))
+  print(plotPCA(sce_total, colour_by="total"))
+  
+  dev.off()
+}
+
+# Set the PATH
+setwd("/Users/jfnavarro/Google Drive/ALZHEIMER_USA(Will)/Hippocampus/data")
+#setwd("/Users/jfnavarro/Google Drive/ALZHEIMER_USA(Will)/MOB/data")
+
+# Load full dataset and meta data
+counts = read.delim("counts/merged_counts.tsv", sep="\t", header=T, row.names=1)
+meta = read.delim("meta.tsv", sep="\t", header=T, row.names=1)
+section_meta = read.delim("sections_meta.tsv", sep="\t", header=T, row.names=1)
+
+# Plot histograms in order to choose good filtering cut-offs 
+pdf("qc_hist_genes.pdf")
+row_sum = rowSums(counts != 0)
+mx = mean(row_sum)
+main_text = paste(round(mx, digits=2), " ± ", round(sd(row_sum), digits=2), " genes per spot", sep="")
+hist(row_sum, ylab="Spots", xlab="Genes", freq=T, col="white", border="black", main=main_text, breaks=50)
+abline(v=mx, col="blue", lwd=2)
+dev.off()
+
+pdf("qc_hist_reads.pdf")
+row_sum = rowSums(counts)
+mx = mean(row_sum)
+main_text = paste(round(mx, digits=2), " ± ", round(sd(row_sum), digits=2), " reads per spot", sep="")
+hist(row_sum, ylab="Spots", xlab="Reads", freq=T, col="white", border="black", main=main_text, breaks=50)
+abline(v=mx, col="blue", lwd=2)
+dev.off()
+
+# Genes as rows
+counts = t(counts)
+rownames(counts) = gsub("[.]", "-", rownames(counts))
+# Remove mt (mito) genes
+if (length(grep("mt-", rownames(counts))) > 0) {
+  counts = counts[-grep("^mt-", rownames(counts)),]
+}
+
+# Perrm a small filtering
+MIN_COUNT = 1
+# Remove all genes with no/low expression (~1% spots detected with count >= 1)
+counts = counts[rowSums(counts >= MIN_COUNT) > 20,]
+# Remove all spots with low number of genes (~1% genes detected with count >= 1)
+counts = counts[,colSums(counts >= MIN_COUNT) > 200]
+
+# Update the meta 
+meta = meta[colnames(counts),]
+meta = as.data.frame(meta)
+
+# Perform some QC 
+sce = SingleCellExperiment(assays=list(counts=counts), 
+                           colData=meta[,c("animal", "cluster", "genotype", "chip")])
+                           
+# RAW counts
+normcounts(sce) = counts
+logcounts(sce) = log2(counts + 1)
+qc_analysis(sce, section_meta, "qc_metrics.pdf", log_total_pca=TRUE)
+
+# REL counts
+col_sum = colSums(counts)
+counts = t(t(counts) / col_sum * mean(col_sum))
+normcounts(sce) = counts
+logcounts(sce) = log2(counts + 1)
+qc_analysis(sce, section_meta, "qc_metrics_norm.pdf", log_total_pca=TRUE)

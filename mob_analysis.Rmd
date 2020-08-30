@@ -1,0 +1,600 @@
+PATH = "~/Google Drive/ALZHEIMER_USA(Will)"
+#PATH = "G:/My Drive/ALZHEIMER_USA(Will)"
+
+# Load in-house functions
+source(paste0(PATH,"/Scripts/libraries.R"))
+
+# Set the path
+setwd(paste0(PATH,"/MOB/COMBINED_DE_ANALYSIS"))
+
+# Load the DE genes
+
+# EPL
+epl_ad_vs_wt = parse_dea_results("results_EPL/dea_results_AD_vs_WT.tsv")
+epl_adpolb_vs_wt = parse_dea_results("results_EPL/dea_results_ADPolB_vs_WT.tsv")
+epl_polb_vs_wt = parse_dea_results("results_EPL/dea_results_PolB_vs_WT.tsv")
+epl_adpolb_vs_ad = parse_dea_results("results_EPL/dea_results_ADPolB_vs_AD.tsv")
+epl_genes = unique(c(rownames(epl_ad_vs_wt), rownames(epl_adpolb_vs_wt), rownames(epl_polb_vs_wt)))
+
+# GCL 
+gcl_ad_vs_wt = parse_dea_results("results_GCL/dea_results_AD_vs_WT.tsv")
+gcl_adpolb_vs_wt = parse_dea_results("results_GCL/dea_results_ADPolB_vs_WT.tsv")
+gcl_polb_vs_wt = parse_dea_results("results_GCL/dea_results_PolB_vs_WT.tsv")
+gcl_adpolb_vs_ad = parse_dea_results("results_GCL/dea_results_ADPolB_vs_AD.tsv")
+gcl_genes = unique(c(rownames(gcl_ad_vs_wt), rownames(gcl_adpolb_vs_wt), rownames(gcl_polb_vs_wt)))
+
+# MCL
+mcl_ad_vs_wt = parse_dea_results("results_MCL/dea_results_AD_vs_WT.tsv")
+mcl_adpolb_vs_wt = parse_dea_results("results_MCL/dea_results_ADPolB_vs_WT.tsv")
+mcl_polb_vs_wt = parse_dea_results("results_MCL/dea_results_PolB_vs_WT.tsv")
+mcl_adpolb_vs_ad = parse_dea_results("results_MCL/dea_results_ADPolB_vs_AD.tsv")
+mcl_genes = unique(c(rownames(mcl_ad_vs_wt), rownames(mcl_adpolb_vs_wt), rownames(mcl_polb_vs_wt)))
+
+# GL
+gl_ad_vs_wt = parse_dea_results("results_GL/dea_results_AD_vs_WT.tsv")
+gl_adpolb_vs_wt = parse_dea_results("results_GL/dea_results_ADPolB_vs_WT.tsv")
+gl_polb_vs_wt = parse_dea_results("results_GL/dea_results_PolB_vs_WT.tsv")
+gl_adpolb_vs_ad = parse_dea_results("results_GL/dea_results_ADPolB_vs_AD.tsv")
+gl_genes = unique(c(rownames(gl_ad_vs_wt), rownames(gl_adpolb_vs_wt), rownames(gl_polb_vs_wt)))
+
+# AD
+ad_epl_vs_other = parse_dea_results("results_AD/dea_results_AD_EPL_vs_Other.tsv")
+ad_other_vs_gl = parse_dea_results("results_AD/dea_results_AD_Other_vs_GL.tsv")
+ad_other_vs_mcl = parse_dea_results("results_AD/dea_results_AD_Other_vs_MCL.tsv")
+ad_other_vs_gcl = parse_dea_results("results_AD/dea_results_AD_Other_vs_GCL.tsv")
+spatial_genes_ad = unique(c(rownames(ad_epl_vs_other), 
+                            rownames(ad_other_vs_gl), 
+                            rownames(ad_other_vs_mcl),
+                            rownames(ad_other_vs_gcl)))
+
+# ADPolB
+adpolb_epl_vs_other = parse_dea_results("results_ADPolB/dea_results_ADPolB_EPL_vs_Other.tsv")
+adpolb_other_vs_gl = parse_dea_results("results_ADPolB/dea_results_ADPolB_Other_vs_GL.tsv")
+adpolb_other_vs_mcl = parse_dea_results("results_ADPolB/dea_results_ADPolB_Other_vs_MCL.tsv")
+adpolb_other_vs_gcl = parse_dea_results("results_ADPolB/dea_results_ADPolB_Other_vs_GCL.tsv")
+spatial_genes_adpolb = unique(c(rownames(adpolb_epl_vs_other), 
+                                rownames(adpolb_other_vs_gl), 
+                                rownames(adpolb_other_vs_mcl),
+                                rownames(adpolb_other_vs_gcl)))
+
+# PolB
+polb_epl_vs_other = parse_dea_results("results_PolB/dea_results_PolB_EPL_vs_Other.tsv")
+polb_other_vs_gl = parse_dea_results("results_PolB/dea_results_PolB_Other_vs_GL.tsv")
+polb_other_vs_mcl = parse_dea_results("results_PolB/dea_results_PolB_Other_vs_MCL.tsv")
+polb_other_vs_gcl = parse_dea_results("results_PolB/dea_results_PolB_Other_vs_GCL.tsv")
+spatial_genes_polb = unique(c(rownames(polb_epl_vs_other), 
+                              rownames(polb_other_vs_gl), 
+                              rownames(polb_other_vs_mcl),
+                              rownames(polb_other_vs_gcl)))
+
+all_de_genes = unique(c(rownames(gcl_ad_vs_wt), rownames(gcl_adpolb_vs_wt), rownames(gcl_polb_vs_wt),
+                        rownames(mcl_ad_vs_wt), rownames(mcl_adpolb_vs_wt), rownames(mcl_polb_vs_wt),
+                        rownames(epl_ad_vs_wt), rownames(epl_adpolb_vs_wt), rownames(epl_polb_vs_wt),
+                        rownames(gl_ad_vs_wt), rownames(gl_adpolb_vs_wt), rownames(gl_polb_vs_wt)))
+spatial_genes = unique(c(spatial_genes_ad, spatial_genes_adpolb, spatial_genes_polb))
+
+# Selected candidated genes
+candidate_genes = read.delim("selected_genes.txt", sep="\n", header=F)
+candidate_genes = unique(sapply(candidate_genes$V1, firstup))
+doEnrichR(candidate_genes, "Candidate_genes", min_fdr=1.0, min_pval=0.05, min_genes=3)
+go_biological = read.delim("Candidate_genes_GO_biological_.tsv", sep="\t", header=T)
+heatmap_pathways(go_biological, "go_biological_selected_genes_heatmap_top25", max=25)
+barplot_pathways(go_biological, "go_biological_selected_genes_barplot_top25", max=25)
+
+# Proteomics data
+de_proteins = read.delim("../PROTEOMICS/DE_PROTEINS.tsv", sep="\t", header=T)
+de_proteins = de_proteins[!duplicated(de_proteins[,"Gene.names"]),]
+rownames(de_proteins) = de_proteins$Gene.names
+de_proteins_ad_vs_wt = rownames(de_proteins[!is.na(de_proteins$FC_AD_vs_WT),])
+de_proteins_adpolb_vs_wt = rownames(de_proteins[!is.na(de_proteins$FC_ADP_vs_WT),])
+de_proteins_polb_vs_wt = rownames(de_proteins[!is.na(de_proteins$FC_POLB_vs_WT),])
+doEnrichR(intersect(unique(c(de_proteins_ad_vs_wt,
+                             de_proteins_adpolb_vs_wt,
+                             de_proteins_polb_vs_wt)),
+                    all_de_genes),
+                   "Proeomics_Transcriptomics", min_fdr=1.0, min_pval=0.05, min_genes=3)
+doEnrichR(unique(c(de_proteins_ad_vs_wt,
+                             de_proteins_adpolb_vs_wt,
+                             de_proteins_polb_vs_wt)),
+                   "Proeomics", min_fdr=1.0, min_pval=0.05, min_genes=3)
+###########################################
+#
+# ALL REGION PAHTWAYS
+############################################
+doEnrichR(all_de_genes, "ALL_REGIONS", min_fdr=1.0, min_pval=0.05, min_genes=3)
+go_biological = read.delim("ALL_REGIONS_GO_biological_.tsv", sep="\t", header=T)
+heatmap_pathways(go_biological, "go_biological_all_regions_heatmap_top25", max=25)
+barplot_pathways(go_biological, "go_biological_all_regions_barplot_top25", max=25)
+
+###########################################
+#
+# EPL REGION
+############################################
+doEnrichR(epl_genes, "EPL", min_fdr=1.0, min_pval=0.05, min_genes=3)
+
+###########################################
+#
+# GCL REGION
+############################################
+unique_gcl_genes = setdiff(gcl_genes, c(epl_genes, mcl_genes, gl_genes))
+doEnrichR(gcl_genes, "GCL", min_fdr=1.0, min_pval=0.05, min_genes=3)
+
+###########################################
+#
+# MCL REGION
+############################################
+unique_mcl_genes = setdiff(mcl_genes, c(gcl_genes, mcl_genes, gl_genes))
+doEnrichR(mcl_genes, "MCL", min_fdr=1.0, min_pval=0.05, min_genes=3)
+
+###########################################
+#
+# GL REGION
+############################################
+unique_gl_genes = setdiff(gl_genes, c(epl_genes, mcl_genes, gl_genes))
+doEnrichR(gl_genes, "GL", min_fdr=1.0, min_pval=0.05, min_genes=3)
+
+##########################################
+# ADP vs AD
+#########################################
+adp_vs_ad_de_genes = unique(c(rownames(epl_adpolb_vs_ad), 
+                              rownames(gcl_adpolb_vs_ad), 
+                              rownames(mcl_adpolb_vs_ad),
+                              rownames(gl_adpolb_vs_ad)))
+                                                  
+doEnrichR(adp_vs_ad_de_genes, "ADP vs AD", min_fdr=1.0, min_pval=0.05, min_genes=3)
+write.table(adp_vs_ad_de_genes, "adp_vs_ad.tsv", sep="\t", row.names = FALSE, quote=FALSE)
+
+###########################################
+# VENN DIAGRAMS
+###########################################
+
+# AD vs WT (venn of all regions)
+venn.diagram(x=list(rownames(epl_ad_vs_wt), rownames(gcl_ad_vs_wt), 
+                    rownames(mcl_ad_vs_wt), rownames(gl_ad_vs_wt)),
+            filename="AD_VS_WT_all_venn.png", main="3xAD vs WT (DE genes)", fill=c("blue", "green", "red", "yellow"), 
+            scaled=TRUE, ext.text=TRUE, ext.line.lwd=1,
+            cex=2, cat.cex=1.5, rotation.degree=0, main.cex=1.5, 
+            cat.fontface=8, height=3000, width=3000,
+            alpha=c(0.5, 0.5, 0.5, 0.5), category.names=c("EPL", "GCL", "MCL", "GL"), imagetype="png")
+            
+# ADP vs WT (venn of all regions)
+venn.diagram(x=list(rownames(epl_adpolb_vs_wt), rownames(gcl_adpolb_vs_wt), 
+                    rownames(mcl_adpolb_vs_wt), rownames(gl_adpolb_vs_wt)), 
+            filename="ADP_VS_WT_all_venn.png", main="3xPB vs WT (DE genes)", fill=c("blue", "green", "red", "yellow"), 
+            scaled=TRUE, ext.text=TRUE, ext.line.lwd=1,
+            cex=2, cat.cex=1.5, rotation.degree=0, main.cex=1.5, 
+            cat.fontface=8, height=3000, width=3000,
+            alpha=c(0.5, 0.5, 0.5, 0.5), category.names=c("EPL", "GCL", "MCL", "GL"), imagetype="png")
+            
+# PolB vs WT (venn of all regions)
+venn.diagram(x=list(rownames(epl_polb_vs_wt), rownames(gcl_polb_vs_wt), 
+                    rownames(mcl_polb_vs_wt), rownames(gl_polb_vs_wt)), 
+            filename="POLB_VS_WT_all_venn.png", main="PB vs WT (DE genes)", fill=c("blue", "green", "red", "yellow"), 
+            scaled=TRUE, ext.text=TRUE, ext.line.lwd=1,
+            cex=2, cat.cex=1.5, rotation.degree=0, main.cex=1.5, 
+            cat.fontface=8, height=3000, width=3000,
+            alpha=c(0.5, 0.5, 0.5, 0.5), category.names=c("EPL", "GCL", "MCL", "GL"), imagetype="png")
+    
+# ADP vs AD (venn of all regions)
+venn.diagram(x=list(rownames(epl_adpolb_vs_ad), rownames(gcl_adpolb_vs_ad), 
+                    rownames(mcl_adpolb_vs_ad), rownames(gl_adpolb_vs_ad)), 
+            filename="ADPOLB_VS_AD_all_venn.png", main="3xADP vs 3xAD (DE genes)", fill=c("blue", "green", "red", "yellow"), 
+            scaled=TRUE, ext.text=TRUE, ext.line.lwd=1,
+            cex=2, cat.cex=1.5, rotation.degree=0, main.cex=1.5, 
+            cat.fontface=8, height=3000, width=3000,
+            alpha=c(0.5, 0.5, 0.5, 0.5), category.names=c("EPL", "GCL", "MCL", "GL"), imagetype="png")
+            
+# (venn of spatials)
+venn.diagram(x=list(spatial_genes_ad,
+                    spatial_genes_adpolb,
+                    spatial_genes_polb),
+            filename="SPATIAL_venn.png", main="Spatial DE genes", fill=c("blue", "green", "red"), 
+            alpha=c(0.5, 0.5, 0.5), scaled=TRUE, ext.text=TRUE, ext.line.lwd=1,
+            cex=2, cat.cex=1.5, rotation.degree=0, main.cex=1.5, 
+            cat.fontface=8, height=3000, width=3000,
+            category.names=c("3xAD", "3xPB", "PB"), imagetype="png") 
+        
+# (venn of spatials and genotype)
+venn.diagram(x=list(spatial_genes,
+                    all_de_genes),
+            filename="SPATIAL_GENOTYPE_venn.png", main="Spatial & Genotype (DE genes)", 
+            fill=c("blue", "red"), 	scaled = TRUE, ext.text = TRUE, ext.line.lwd = 1,
+            cex = 2.0, cat.cex = 1.5, rotation.degree = 0, cat.pos = 0, main.cex=2,
+            alpha=c(0.5, 0.5), cat.fontface=10, height=3000, width=3000,
+            category.names=c("Spatial DE", "Genotype DE"), imagetype="png") 
+            
+# (venn of proteomics and transcriptomics AD)
+venn.diagram(x=list(de_proteins_ad_vs_wt,
+                    unique(c(rownames(epl_ad_vs_wt), rownames(gcl_ad_vs_wt), 
+                             rownames(mcl_ad_vs_wt), rownames(gl_ad_vs_wt)))),
+            filename="PROTEOMICS_TRANSCRIPTOMICS_AD_venn.png", main="Proteomics & Transcriptomics (DE genes 3xAD)", 
+            fill=c("blue", "red"), 	scaled = TRUE, ext.text = TRUE, ext.line.lwd = 1,
+            cex = 2.0, cat.cex = 1.5, rotation.degree = 0, cat.pos = 0, main.cex=1.5,
+            alpha=c(0.5, 0.5), cat.fontface=10, height=3000, width=3000,
+            category.names=c("Proteomics", "Transcriptomics"), imagetype="png")
+          
+# (venn of proteomics and transcriptomics ADP)
+venn.diagram(x=list(de_proteins_adpolb_vs_wt,
+                    unique(c(rownames(epl_adpolb_vs_wt), rownames(gcl_adpolb_vs_wt), 
+                             rownames(mcl_adpolb_vs_wt), rownames(gl_adpolb_vs_wt)))),
+            filename="PROTEOMICS_TRANSCRIPTOMICS_ADP_venn.png", main="Proteomics & Transcriptomics (DE genes 3xPB)", 
+            fill=c("blue", "red"), 	scaled = TRUE, ext.text = TRUE, ext.line.lwd = 1,
+            cex = 2.0, cat.cex = 1.5, rotation.degree = 0, cat.pos = 0, main.cex=1.5,
+            alpha=c(0.5, 0.5), cat.fontface=10, height=3000, width=3000,
+            category.names=c("Proteomics", "Transcriptomics"), imagetype="png") 
+            
+# (venn of proteomics and transcriptomics Polb)
+venn.diagram(x=list(de_proteins_polb_vs_wt,
+                    unique(c(rownames(epl_polb_vs_wt), rownames(gcl_polb_vs_wt), 
+                             rownames(mcl_polb_vs_wt), rownames(gl_polb_vs_wt)))),
+            filename="PROTEOMICS_TRANSCRIPTOMICS_PB_venn.png", main="Proteomics & Transcriptomics (DE genes PB)", 
+            fill=c("blue", "red"), 	scaled = TRUE, ext.text = TRUE, ext.line.lwd = 1,
+            cex = 2.0, cat.cex = 1.5, rotation.degree = 0, cat.pos = 0, main.cex=1.5,
+            alpha=c(0.5, 0.5), cat.fontface=10, height=3000, width=3000,
+            category.names=c("Proteomics", "Transcriptomics"), imagetype="png") 
+            
+# Correlations of fold-changes
+# AD vs ADP (wrt WT)
+fc_corr(epl_ad_vs_wt, epl_adpolb_vs_wt, 
+        xlabel="log2FoldChange [3xAD]", 
+        ylabel="log2FoldChange [3xPB]", 
+        title="3xAD vs 3xPB (EPL)")
+
+fc_corr(mcl_ad_vs_wt, mcl_adpolb_vs_wt, 
+        xlabel="log2FoldChange [3xAD]", 
+        ylabel="log2FoldChange [3xPB]", 
+        title="3xAD vs 3xPB (MCL)")
+        
+fc_corr(gl_ad_vs_wt, gl_adpolb_vs_wt, 
+        xlabel="log2FoldChange [3xAD]", 
+        ylabel="log2FoldChange [3xPB]", 
+        title="3xAD vs 3xPB (GL)")
+      
+fc_corr(gcl_ad_vs_wt, gcl_adpolb_vs_wt, 
+        xlabel="log2FoldChange [3xAD]", 
+        ylabel="log2FoldChange [3xPB]", 
+        title="3xAD vs 3xPB (GCL)")
+       
+# AD vs PB
+fc_corr(epl_ad_vs_wt, epl_polb_vs_wt, 
+        xlabel="log2FoldChange [3xAD]", 
+        ylabel="log2FoldChange [PB]", 
+        title="3xAD vs PB (EPL)")
+
+fc_corr(mcl_ad_vs_wt, mcl_polb_vs_wt, 
+        xlabel="log2FoldChange [3xAD]", 
+        ylabel="log2FoldChange [PB]", 
+        title="3xAD vs PB (MCL)")
+        
+fc_corr(gl_ad_vs_wt, gl_polb_vs_wt, 
+        xlabel="log2FoldChange [3xAD]", 
+        ylabel="log2FoldChange [PB]", 
+        title="3xAD vs PB (GL)")
+      
+fc_corr(gcl_ad_vs_wt, gcl_polb_vs_wt, 
+        xlabel="log2FoldChange [3xAD]", 
+        ylabel="log2FoldChange [PB]", 
+        title="3xAD vs PB (GCL)") 
+        
+        
+# ADP vs PB
+fc_corr(epl_adpolb_vs_wt, epl_polb_vs_wt, 
+        xlabel="log2FoldChange [3xPB]", 
+        ylabel="log2FoldChange [PB]", 
+        title="3xPB vs PB (EPL)")
+
+fc_corr(mcl_adpolb_vs_wt, mcl_polb_vs_wt, 
+        xlabel="log2FoldChange [3xPB]", 
+        ylabel="log2FoldChange [PB]", 
+        title="3xPB vs PB (MCL)")
+        
+fc_corr(gl_adpolb_vs_wt, gl_polb_vs_wt, 
+        xlabel="log2FoldChange [3xPB]", 
+        ylabel="log2FoldChange [PB]", 
+        title="3xPB vs PB (GL)")
+      
+fc_corr(gcl_adpolb_vs_wt, gcl_polb_vs_wt, 
+        xlabel="log2FoldChange [3xPB]", 
+        ylabel="log2FoldChange [PB]", 
+        title="3xPB vs PB (GCL)") 
+        
+        
+# ADP vs ADP (wrt AD)
+fc_corr(epl_adpolb_vs_ad, epl_adpolb_vs_wt, 
+        xlabel="log2FoldChange [3xPB(wrt AD)]", 
+        ylabel="log2FoldChange [3xPB(wrt WT)]", 
+        title="3xPB vs 3xPB (EPL)")
+
+fc_corr(mcl_adpolb_vs_ad, mcl_adpolb_vs_wt, 
+        xlabel="log2FoldChange [3xPB(wrt AD)]", 
+        ylabel="log2FoldChange [3xPB(wrt WT)]", 
+        title="3xPB vs 3xPB (MCL)")
+        
+fc_corr(gl_adpolb_vs_ad, gl_adpolb_vs_wt, 
+        xlabel="log2FoldChange [3xPB(wrt AD)]", 
+        ylabel="log2FoldChange [3xPB(wrt WT)]", 
+        title="3xPB vs 3xPB (GL)")
+      
+fc_corr(gcl_adpolb_vs_ad, gcl_adpolb_vs_wt, 
+        xlabel="log2FoldChange [3xPB(wrt AD)]", 
+        ylabel="log2FoldChange [3xPB(wrt WT)]", 
+        title="3xPB vs 3xPB (GCL)")
+        
+#################################################################################
+# HEATMAPS
+################################################################################
+
+# Load counts and meta
+counts = read.delim("../data/exp_counts/merged_counts.tsv", sep="\t", header=T, row.names=1)
+meta = read.delim("../data/meta.tsv", sep="\t", header=T, row.names=1)
+
+#  Rename 
+new_genotype = as.character(meta$genotype)
+new_genotype[new_genotype == "AD"] = "3xAD"
+new_genotype[new_genotype == "ADPolB"] = "3xPB"
+new_genotype[new_genotype == "PolB"] = "PB"
+meta$genotype = as.factor(new_genotype)
+
+# Plot distribution
+spot_distribution(meta[meta$cluster %in% c("GL", "GCL", "EPL", "MCL"),])
+
+# Genes as columns
+counts = t(counts)
+
+rownames(counts) = gsub("[.]", "-", rownames(counts))
+# Remove mt (mito) genes
+if (length(grep("mt-", rownames(counts))) > 0) {
+  counts = counts[-grep("^mt-", rownames(counts)),]
+}
+  
+# Intersect with meta (keep only GL, GCL, EPL and MCL) and DE genes
+meta = meta[intersect(colnames(counts), rownames(meta[meta$cluster %in% c("GL", "GCL", "EPL", "MCL"),])),]
+counts = counts[intersect(all_de_genes, rownames(counts)),rownames(meta)]
+  
+# Normalize and log
+col_sum = colSums(counts)
+counts = t(t(counts) / col_sum * mean(col_sum))
+counts = log2(counts + 1)
+
+# Re-order clusters
+meta$cluster = droplevels(meta$cluster)
+meta$cluster = factor(meta$cluster, levels=c("GL", "EPL", "MCL", "GCL"))
+
+# Re-order genotype
+meta$genotype = factor(meta$genotype, levels=c("WT", "PB", "3xAD", "3xPB"))
+ 
+FONTSIZE = 6
+COL = colorRampPalette(rev(brewer.pal(n=9, name="RdBu")))(100)
+ann_colors = list( 
+    cluster = c("GL" = "#9FC4DF", "EPL" = "#BA9B95", "MCL" = "#A5DCE5", "GCL" = "#A1D28B"),
+    genotype = c("WT" = "#ACDFE7", "PB" = "#F5BED7", "3xAD" = "#2484BC", "3xPB" = "#D53C44")
+)
+                  
+# TOP genes (expression)
+select = order(rowMeans(counts), decreasing=TRUE)[1:50]
+sub_sce = counts[select, order(meta$genotype, meta$cluster)]
+ann = as.data.frame(meta[colnames(sub_sce),c("genotype", "cluster")])
+heatmap_counts(sub_sce, ann, "heatmap_norm_counts_top_expression.pdf", COL, ann_colors, FONTSIZE)
+
+# TOP genes (expression 100)
+select = order(rowMeans(counts), decreasing=TRUE)[1:100]
+sub_sce = counts[select, order(meta$genotype, meta$cluster)]
+ann = as.data.frame(meta[colnames(sub_sce),c("genotype", "cluster")])
+heatmap_counts(sub_sce, ann, "heatmap_norm_counts_top_expression_100.pdf", COL, ann_colors, FONTSIZE)
+
+# TOP genes (variance)
+select = order(apply(counts, 1, var), decreasing=TRUE)[1:50]
+sub_sce = counts[select,order(meta$genotype, meta$cluster)]
+ann = as.data.frame(meta[colnames(sub_sce),c("genotype", "cluster")])
+heatmap_counts(sub_sce, ann, "heatmap_norm_counts_top_variance.pdf", COL, ann_colors, FONTSIZE)
+
+# TOP genes (variance 100)
+select = order(apply(counts, 1, var), decreasing=TRUE)[1:100]
+sub_sce = counts[select,order(meta$genotype, meta$cluster)]
+ann = as.data.frame(meta[colnames(sub_sce),c("genotype", "cluster")])
+heatmap_counts(sub_sce, ann, "heatmap_norm_counts_top_variance_100.pdf", COL, ann_colors, FONTSIZE)
+
+# Selected candidate genes heatmap (expression)
+sub_sce = counts[rownames(counts) %in% candidate_genes, order(meta$genotype, meta$cluster)]
+sub_sce = sub_sce[order(rowMeans(sub_sce), decreasing=TRUE),]
+ann = as.data.frame(meta[colnames(sub_sce),c("genotype", "cluster")])
+heatmap_counts(sub_sce, ann, "heatmap_norm_counts_top_candidate_genes.pdf", COL, ann_colors, FONTSIZE)
+
+# Selected candidate genes heatmap (fold-change)
+heatmap_genes_MOB(rownames(sub_sce),  
+                  epl_ad_vs_wt, epl_adpolb_vs_wt, epl_polb_vs_wt,
+                  gcl_ad_vs_wt, gcl_adpolb_vs_wt, gcl_polb_vs_wt,
+                  mcl_ad_vs_wt, mcl_adpolb_vs_wt, mcl_polb_vs_wt,
+                  gl_ad_vs_wt, gl_adpolb_vs_wt, gl_polb_vs_wt,
+                  "heatmap_fold_change_candidate_genes", fontsize=3, width=8, height=8)
+      
+#################################################################################
+# HEATMAPS (TERMS and CELLS)
+#################################################################################      
+
+# Get terms
+gene_sets = c()
+#term_files = list.files(path="../../TERMS_AND_CELLS", pattern="*.txt", full.names=TRUE, recursive=FALSE)
+#for (term in term_files) {
+#  genes = unique(firstup(unlist(read.table(term, header=FALSE))))
+#  name = basename(term)
+#  name = gsub(pattern="\\.txt$", "", name)
+#  gs = GeneSet(setName=name, setIdentifier=name, geneIds=genes)
+#  geneIdType(gs) = SymbolIdentifier()
+#  gene_sets = c(gene_sets, gs)
+#}
+go_bio = read.delim("PATHWAY_ANALYSIS/ALL_REGIONS_GO_biological_.tsv", sep="\t", header=T, row.names=1)
+for (row in 1:min(nrow(go_bio),30)) {
+  genes = unique(firstup(unlist(strsplit(as.character(go_bio[row,"Genes"]), ";"))))
+  name = as.character(go_bio[row,"Term"])
+  name = paste(stringr::str_to_title(head(unlist(strsplit(name, " ")),-1)), collapse=' ')
+  gs = GeneSet(setName=name, setIdentifier=name, geneIds=genes)
+  geneIdType(gs) = SymbolIdentifier()
+  gene_sets = c(gene_sets, gs)
+}
+gc = GeneSetCollection(gene_sets)
+
+# Create scores (all genes)
+sub_sce = as.matrix(counts[,order(meta$genotype, meta$cluster)])
+ann = as.data.frame(meta[colnames(sub_sce), c("genotype", "cluster")])
+heatmap_counts(enrichment_scores_gsva(sub_sce, gc, n_cores=4), ann, "gsva_scores.pdf", COL, ann_colors, FONTSIZE)
+heatmap_counts(enrichment_scores_fgsa(sub_sce, gc, n_cores=4), ann, "fgsa_scores.pdf", COL, ann_colors, FONTSIZE)
+#heatmap_counts(enrichment_scores_auc(sub_sce, gc, n_cores=4), ann, "auc_scores.pdf", COL, ann_colors, FONTSIZE)
+
+# SingleR analysis
+enrichment_scores_singleR(sub_sce, ann)
+
+##############################
+# VOLCANO PLOTS
+#############################
+  
+markers_table = data.frame(p_val=c(gcl_ad_vs_wt$pvalue, gcl_adpolb_vs_wt$pvalue, gcl_polb_vs_wt$pvalue,
+                                   epl_ad_vs_wt$pvalue, epl_adpolb_vs_wt$pvalue, epl_polb_vs_wt$pvalue,
+                                   mcl_ad_vs_wt$pvalue, mcl_adpolb_vs_wt$pvalue, mcl_polb_vs_wt$pvalue,
+                                   gl_ad_vs_wt$pvalue, gl_adpolb_vs_wt$pvalue, gl_polb_vs_wt$pvalue),
+                           avg_logFC=c(gcl_ad_vs_wt$log2FoldChange, gcl_adpolb_vs_wt$log2FoldChange, gcl_polb_vs_wt$log2FoldChange,
+                                       epl_ad_vs_wt$log2FoldChange, epl_adpolb_vs_wt$log2FoldChange, epl_polb_vs_wt$log2FoldChange,
+                                       mcl_ad_vs_wt$log2FoldChange, mcl_adpolb_vs_wt$log2FoldChange, mcl_polb_vs_wt$log2FoldChange,
+                                       gl_ad_vs_wt$log2FoldChange, gl_adpolb_vs_wt$log2FoldChange, gl_polb_vs_wt$log2FoldChange),
+                           p_val_adj=c(gcl_ad_vs_wt$padj, gcl_adpolb_vs_wt$padj, gcl_polb_vs_wt$padj,
+                                       epl_ad_vs_wt$padj, epl_adpolb_vs_wt$padj, epl_polb_vs_wt$padj,
+                                       mcl_ad_vs_wt$padj, mcl_adpolb_vs_wt$padj, mcl_polb_vs_wt$padj,
+                                       gl_ad_vs_wt$padj, gl_adpolb_vs_wt$padj, gl_polb_vs_wt$padj),
+                           cluster=c(rep.int(0, nrow(gcl_ad_vs_wt)), rep.int(1, nrow(gcl_adpolb_vs_wt)), rep.int(2, nrow(gcl_polb_vs_wt)),
+                                     rep.int(3, nrow(epl_ad_vs_wt)), rep.int(4, nrow(epl_adpolb_vs_wt)), rep.int(5, nrow(epl_polb_vs_wt)),
+                                     rep.int(6, nrow(mcl_ad_vs_wt)), rep.int(7, nrow(mcl_adpolb_vs_wt)), rep.int(8, nrow(mcl_polb_vs_wt)),
+                                     rep.int(9, nrow(gl_ad_vs_wt)), rep.int(10, nrow(gl_adpolb_vs_wt)), rep.int(11, nrow(gl_polb_vs_wt))),
+                           gene=c(rownames(gcl_ad_vs_wt), rownames(gcl_adpolb_vs_wt), rownames(gcl_polb_vs_wt),
+                                  rownames(epl_ad_vs_wt), rownames(epl_adpolb_vs_wt), rownames(epl_polb_vs_wt),
+                                  rownames(mcl_ad_vs_wt), rownames(mcl_adpolb_vs_wt), rownames(mcl_polb_vs_wt),
+                                  rownames(gl_ad_vs_wt), rownames(gl_adpolb_vs_wt), rownames(gl_polb_vs_wt)), 
+                           stringsAsFactors=FALSE)
+
+labels = c("GCL(3xAD)", "GCL(3xPB)", "GCL(PB)", "EPL(3xAD)", "EPL(3xPB)", "EPL(PB)", 
+           "MCL(3xAD)", "MCL(3xPB)", "MCL(PB)", "GL(3xAD)", "GL(3xPB)", "GL(PB)")
+cols = c("#A1D28B", "#A1D28B", "#A1D28B", "#BA9B95", "#BA9B95", "#BA9B95", 
+         "#A5DCE5", "#A5DCE5", "#A5DCE5", "#9FC4DF", "#9FC4DF", "#9FC4DF")
+
+# ALL DE genes 
+volcano_plot(markers_table, 
+             labels, cols, "volcano_all_de_genes.pdf", p_val_threshold=0.05, fc_threshold=1.0)
+             
+# All DE selected genes 
+volcano_plot(markers_table[table$gene %in% candidate_genes,], 
+             labels, cols, "volcano_selected_genes.pdf", p_val_threshold=0.05, fc_threshold=0.5)
+                     
+#############################
+# CO-EXPRESSION ANALYSIS
+#############################
+# BASED on DE GENES
+
+# AD
+sce_ad = counts[,meta$genotype == "AD"]
+do_coepr(sce_ad, "AD", 0.8, "average", 10)
+
+# ADPolB
+sce_adpolb = counts[,meta$genotype == "ADP"]
+do_coepr(sce_adpolb, "ADPolb", 0.9, "average", 10)
+
+# PolB
+sce_polb = counts[,meta$genotype == "POLB"]
+do_coepr(sce_polb, "Polb", 0.7, "average", 10)
+             
+##############################
+# SUMARY EXCEL TABLES
+#############################
+
+data = data.frame(AD_EPL_FC=numeric(), ADP_EPL_FC=numeric(), POLB_EPL_FC=numeric(),
+                  AD_EPL_FDR=numeric(), ADP_EPL_FDR=numeric(), POLB_EPL_FDR=numeric(),
+                  AD_GCL_FC=numeric(), ADP_GCL_FC=numeric(), POLB_GCL_FC=numeric(),
+                  AD_GCL_FDR=numeric(), ADP_GCL_FDR=numeric(), POLB_GCL_FDR=numeric(),
+                  AD_MCL_FC=numeric(), ADP_MCL_FC=numeric(), POLB_MCL_FC=numeric(),
+                  AD_MCL_FDR=numeric(), ADP_MCL_FDR=numeric(), POLB_MCL_FDR=numeric(),
+                  AD_GL_FC=numeric(), ADP_GL_FC=numeric(), POLB_GL_FC=numeric(),
+                  AD_GL_FDR=numeric(), ADP_GL_FDR=numeric(), POLB_GL_FDR=numeric(),
+                  description=character(), stringsAsFactors=FALSE)
+
+#for(gene in all_de_genes) {
+for(gene in intersect(all_de_genes, spatial_genes)) {
+  description = tryCatch({
+    mapIds(org.Mm.eg.db, keys=gene, column="GENENAME", keytype="SYMBOL", multiVals="first")
+  }, warning = function(w) {
+    return("No description")
+  }, error = function(e) {
+    return("No description")
+  }, finally = {
+  })
+  data[gene,] = c(epl_ad_vs_wt[gene,]$log2FoldChange, epl_adpolb_vs_wt[gene,]$log2FoldChange, epl_polb_vs_wt[gene,]$log2FoldChange,
+                  epl_ad_vs_wt[gene,]$padj, epl_adpolb_vs_wt[gene,]$padj, epl_polb_vs_wt[gene,]$padj,
+                  gcl_ad_vs_wt[gene,]$log2FoldChange, gcl_adpolb_vs_wt[gene,]$log2FoldChange, gcl_polb_vs_wt[gene,]$log2FoldChange,
+                  gcl_ad_vs_wt[gene,]$padj, gcl_adpolb_vs_wt[gene,]$padj, gcl_polb_vs_wt[gene,]$padj,
+                  mcl_ad_vs_wt[gene,]$log2FoldChange, mcl_adpolb_vs_wt[gene,]$log2FoldChange, mcl_polb_vs_wt[gene,]$log2FoldChange,
+                  mcl_ad_vs_wt[gene,]$padj, mcl_adpolb_vs_wt[gene,]$padj, mcl_polb_vs_wt[gene,]$padj,
+                  gl_ad_vs_wt[gene,]$log2FoldChange, gl_adpolb_vs_wt[gene,]$log2FoldChange, gl_polb_vs_wt[gene,]$log2FoldChange,
+                  gl_ad_vs_wt[gene,]$padj, gl_adpolb_vs_wt[gene,]$padj, gl_polb_vs_wt[gene,]$padj,
+                  description)
+  
+}
+
+ind = apply(data[,1:24], 1, function(x) all(is.na(x)))
+data = data[!ind,]
+data[is.na(data)] = as.double("NA")
+data$AD_EPL_FC = round(as.numeric(data$AD_EPL_FC), digits=2)
+data$ADP_EPL_FC = round(as.numeric(data$ADP_EPL_FC), digits=2)
+data$POLB_EPL_FC = round(as.numeric(data$POLB_EPL_FC), digits=2)
+data$AD_GCL_FC = round(as.numeric(data$AD_GCL_FC), digits=2)
+data$ADP_GCL_FC = round(as.numeric(data$ADP_GCL_FC), digits=2)
+data$POLB_GCL_FC = round(as.numeric(data$POLB_GCL_FC), digits=2)
+data$AD_MCL_FC = round(as.numeric(data$AD_MCL_FC), digits=2)
+data$ADP_MCL_FC = round(as.numeric(data$ADP_MCL_FC), digits=2)
+data$POLB_MCL_FC = round(as.numeric(data$POLB_MCL_FC), digits=2)
+data$AD_GL_FC = round(as.numeric(data$AD_GL_FC), digits=2)
+data$ADP_GL_FC = round(as.numeric(data$ADP_GL_FC), digits=2)
+data$POLB_GL_FC = round(as.numeric(data$POLB_GL_FC), digits=2)  
+data$AD_EPL_FDR = round(as.numeric(data$AD_EPL_FDR), digits=2)
+data$ADP_EPL_FDR = round(as.numeric(data$ADP_EPL_FDR), digits=2)
+data$POLB_EPL_FDR = round(as.numeric(data$POLB_EPL_FDR), digits=2)
+data$AD_GCL_FDR = round(as.numeric(data$AD_GCL_FDR), digits=2)
+data$ADP_GCL_FDR = round(as.numeric(data$ADP_GCL_FDR), digits=2)
+data$POLB_GCL_FDR = round(as.numeric(data$POLB_GCL_FDR), digits=2)
+data$AD_MCL_FDR = round(as.numeric(data$AD_MCL_FDR), digits=2)
+data$ADP_MCL_FDR = round(as.numeric(data$ADP_MCL_FDR), digits=2)
+data$POLB_MCL_FDR = round(as.numeric(data$POLB_MCL_FDR), digits=2)
+data$AD_GL_FDR = round(as.numeric(data$AD_GL_FDR), digits=2)
+data$ADP_GL_FDR = round(as.numeric(data$ADP_GL_FDR), digits=2)
+data$POLB_GL_FDR = round(as.numeric(data$POLB_GL_FDR), digits=2)
+
+#write.table(data, "summary_de_genes_filtered.tsv", sep="\t")
+write.table(data, "summary_de_genes_spatial_filtered.tsv", sep="\t")
+
+################
+# Factor analysis genes
+################
+
+fa_genes = unique(intersect(c("Snap25", "Ndrg4", "Calm2", "Atp1b1", "Ubb", "Itm2b", "Pcp4", "Ckb", "Ncdn", "Gad1", 
+                              "Atp1b1", "Gad1", "Snap25", "Ndrg4", "Cplx1", "Pcp4", "Calm2", "Ubb", "Itm2b", "Pcp4l1",
+                              "Atp1b1", "Snap25", "Cpe", "Cdhr1", "Olfm1", "Ndrg4", "Map1b", "Slc17a7", "Hsp90aa1", "Sparcl1",
+                              "Sparcl1", "Nrsn1", "Atp1b1", "Apoe", "Cpe", "Olfm1", "Ubb", "Gnas", "Glul", "Cck"), all_de_genes))
+                              
+fa_genes2 = unique(intersect(c("Mbp", "Cst3", "Plp1", "Fth1", "Actb", "Scd2", "Apoe", "Mobp", "Ubb", "Cpe",
+                              "Ptgds", "Apoe", "Hbb-bs", "Apod", "Ptn", "Fabp7", "Hba-a2", "Glul", "Hbb-bt", "Sparcl1"), all_de_genes))
+                              
+                              
+# DE genes per chromosome distribution
+library(EnsDb.Mmusculus.v79, quietly=TRUE)
+edb = EnsDb.Mmusculus.v79
+genes = genes(edb, columns=c("gene_name", "seq_name"), return.type="data.frame")
+genes = genes[!duplicated(genes[,"gene_name"]),]
+rownames(genes) = genes$gene_name
+genes = na.omit(genes[all_de_genes,])
+genes$seq_name = factor(genes$seq_name, 
+  levels = c("1", "2", "3", "4", "5", "6",
+             "7", "8", "9", "10", "11", "12", 
+             "13", "14", "15", "16", "17", "18", 
+             "19", "X", "Y"))
+pdf("histogram_DE_genes_chromosome.pdf")
+ggplot(data=genes, aes(seq_name)) + 
+  geom_histogram(stat="count") +
+  xlab("Chromosome") +
+  ylab("Number of DE geners")
+dev.off()
